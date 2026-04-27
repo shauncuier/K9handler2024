@@ -1,18 +1,45 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useCart } from '../context/useCart';
 
 export default function Header() {
   const { cartCount } = useCart();
+  const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
+  const isShopPage = location.pathname === '/shop';
+  const activeSearchQuery = isShopPage ? searchParams.get('search') || '' : searchQuery;
+
+  const updateSearch = (value) => {
+    if (!isShopPage) {
+      setSearchQuery(value);
+    }
+
+    const trimmedValue = value.trim();
+
+    if (isShopPage) {
+      const nextParams = new URLSearchParams(searchParams);
+
+      if (trimmedValue) {
+        nextParams.set('search', trimmedValue);
+      } else {
+        nextParams.delete('search');
+      }
+
+      setSearchParams(nextParams, { replace: true });
+      return;
+    }
+
+    if (trimmedValue) {
+      navigate(`/shop?search=${encodeURIComponent(trimmedValue)}`);
+      setSearchQuery('');
+    }
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-    }
+    updateSearch(searchQuery);
   };
 
   return (
@@ -46,8 +73,8 @@ export default function Header() {
               <input 
                 type="text" 
                 placeholder="Search sneakers..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={activeSearchQuery}
+                onChange={(e) => updateSearch(e.target.value)}
                 className="bg-bg-alt border border-brand-purple/20 rounded-full py-2 px-4 text-xs focus:outline-none focus:border-brand-purple focus:ring-1 focus:ring-brand-purple w-48 text-text-main transition-all"
               />
               <button type="submit" className="absolute right-3 top-2 text-text-sub hover:text-brand-purple transition-colors">

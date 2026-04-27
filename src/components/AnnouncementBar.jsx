@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function AnnouncementBar() {
   return (
     <div className="bg-brand-purple-dark py-2 px-4 border-b border-brand-purple">
